@@ -1,5 +1,6 @@
 import { Upload } from 'lucide-react';
-import { ChangeEvent, useState, DragEvent } from 'react';
+import { useState } from 'react';
+import type { ChangeEvent, DragEvent } from 'react';
 
 interface ImageUploadProps {
   onUpload: (files: File[]) => void;
