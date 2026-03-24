@@ -1,4 +1,4 @@
-import { Eye, Image as ImageIcon, Trash2, Download, Heart } from 'lucide-react';
+import { Eye, Image as ImageIcon, Trash2, Download, Heart, Video as VideoIcon } from 'lucide-react';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import type { ImageItem } from '../types';
@@ -57,12 +57,24 @@ export function ImageCard({ image, onClick, onDelete, onDownload, onToggleFavori
         </button>
       </div>
 
-      <img
-        src={image.previewUrl}
-        alt={image.name}
-        onLoad={() => setIsLoading(false)}
-        className={`h-full w-full object-cover transition-all duration-700 ${isLoading ? 'scale-110 blur-xl opacity-0' : 'scale-100 blur-0 opacity-100 group-hover:scale-110'} ${isGrayscale ? 'grayscale group-hover:grayscale-0' : ''}`}
-      />
+      {image.type === 'video' ? (
+        <video
+          src={image.previewUrl}
+          onLoadedData={() => setIsLoading(false)}
+          className={`h-full w-full object-cover transition-all duration-700 ${isLoading ? 'scale-110 blur-xl opacity-0' : 'scale-100 blur-0 opacity-100 group-hover:scale-110'} ${isGrayscale ? 'grayscale group-hover:grayscale-0' : ''}`}
+          muted
+          loop
+          playsInline
+          autoPlay
+        />
+      ) : (
+        <img
+          src={image.previewUrl}
+          alt={image.name}
+          onLoad={() => setIsLoading(false)}
+          className={`h-full w-full object-cover transition-all duration-700 ${isLoading ? 'scale-110 blur-xl opacity-0' : 'scale-100 blur-0 opacity-100 group-hover:scale-110'} ${isGrayscale ? 'grayscale group-hover:grayscale-0' : ''}`}
+        />
+      )}
       
       {/* Overlay gradient */}
       <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 pointer-events-none" />
@@ -76,9 +88,12 @@ export function ImageCard({ image, onClick, onDelete, onDownload, onToggleFavori
 
       {/* Bottom text overlay */}
       <div className="absolute inset-x-0 bottom-0 p-5 opacity-0 transition-all duration-300 translate-y-4 group-hover:translate-y-0 group-hover:opacity-100 pointer-events-none flex items-center justify-between">
-        <div className="truncate">
-          <p className="truncate text-sm font-semibold text-white shadow-sm leading-tight">{image.name}</p>
-          <p className="text-xs font-medium text-white/70 mt-1">{image.size ? (image.size / 1024 / 1024).toFixed(2) + ' MB' : 'New Image'}</p>
+        <div className="truncate w-full pr-2">
+          <p className="truncate text-sm font-semibold text-white shadow-sm leading-tight flex items-center gap-2">
+            {image.type === 'video' && <VideoIcon className="h-4 w-4 shrink-0 drop-shadow-md" />}
+            {image.name}
+          </p>
+          <p className="text-xs font-medium text-white/70 mt-1">{image.size ? (image.size / 1024 / 1024).toFixed(2) + ' MB' : 'New File'}</p>
         </div>
         {image.isFavorite && <Heart className="h-4 w-4 text-red-500 fill-current ml-2 shrink-0 drop-shadow-md" />}
       </div>

@@ -126,11 +126,21 @@ export function Lightbox({ images, currentIndex, onClose, onNavigate }: Lightbox
                 </button>
               </div>
               <TransformComponent wrapperStyle={{ width: "100%", height: "85vh" }} contentStyle={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <img
-                  src={currentImage.previewUrl}
-                  alt={currentImage.name}
-                  className="max-h-full max-w-full object-contain rounded-md shadow-2xl select-none"
-                />
+                {currentImage.type === 'video' ? (
+                  <video
+                    src={currentImage.previewUrl}
+                    controls
+                    autoPlay
+                    playsInline
+                    className="max-h-full max-w-full object-contain rounded-md shadow-2xl"
+                  />
+                ) : (
+                  <img
+                    src={currentImage.previewUrl}
+                    alt={currentImage.name}
+                    className="max-h-full max-w-full object-contain rounded-md shadow-2xl select-none"
+                  />
+                )}
               </TransformComponent>
             </>
           )}

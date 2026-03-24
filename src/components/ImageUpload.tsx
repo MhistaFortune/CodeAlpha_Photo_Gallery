@@ -30,7 +30,7 @@ export function ImageUpload({ onUpload }: ImageUploadProps) {
     e.preventDefault();
     setIsDragging(false);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
+      const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/') || file.type.startsWith('video/'));
       if (files.length > 0) {
         onUpload(files);
       }
@@ -56,13 +56,13 @@ export function ImageUpload({ onUpload }: ImageUploadProps) {
           <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white mb-2">Add to your collection</h2>
           <span className="font-semibold text-blue-600 dark:text-blue-400">Click to browse</span>
           <span className="text-gray-500 dark:text-gray-400 font-medium"> or drag and drop</span>
-          <p className="mt-2 text-xs font-medium text-gray-400 dark:text-gray-500">Supports JPG, PNG, WEBP, GIF</p>
+          <p className="mt-2 text-xs font-medium text-gray-400 dark:text-gray-500">Supports JPG, PNG, WEBP, GIF, MP4, WEBM</p>
         </div>
         <input
           type="file"
           className="sr-only"
           multiple
-          accept="image/*"
+          accept="image/*,video/*"
           onChange={handleFileChange}
         />
       </label>

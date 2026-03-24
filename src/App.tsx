@@ -89,7 +89,8 @@ function App() {
         previewUrl: img.previewUrl,
         size: img.size,
         isFavorite: img.isFavorite,
-        uploadDate: img.uploadDate
+        uploadDate: img.uploadDate,
+        type: img.type
       }))));
     } catch (e) {
       console.warn("Storage quota exceeded or error saving to localStorage.", e);
@@ -97,15 +98,24 @@ function App() {
     }
   };
 
+  const getPreviewUrl = async (file: File): Promise<string> => {
+    // Prevent browser crash and quota limit issues for large files or videos
+    if (file.type.startsWith('video/') || file.size > 2 * 1024 * 1024) {
+      return URL.createObjectURL(file);
+    }
+    return await fileToDataUrl(file);
+  };
+
   const handleUpload = async (files: File[]) => {
     const newImages: ImageItem[] = await Promise.all(
       files.map(async (file) => ({
         id: crypto.randomUUID(),
         file,
-        previewUrl: await fileToDataUrl(file), // Convert to base64 for persistence
+        previewUrl: await getPreviewUrl(file), // Convert to base64 or ObjectURL
         name: file.name,
         size: file.size,
         uploadDate: Date.now(),
+        type: file.type.startsWith('video/') ? 'video' : 'image',
       }))
     );
 
@@ -201,8 +211,8 @@ function App() {
                <div className="absolute inset-0 block rounded-full bg-blue-500/10 blur-xl dark:bg-blue-400/10"></div>
                <ImageIcon className="relative h-20 w-20 text-blue-500/40 dark:text-blue-400/40" />
             </div>
-            <p className="text-2xl font-medium text-gray-800 dark:text-gray-200">No images yet</p>
-            <p className="text-base mt-2 max-w-sm text-center">Upload some awesome pictures above to bring your gallery to life!</p>
+            <p className="text-2xl font-medium text-gray-800 dark:text-gray-200">No media yet</p>
+            <p className="text-base mt-2 max-w-sm text-center">Upload some awesome pictures or videos above to bring your gallery to life!</p>
           </div>
         )}
       </main>

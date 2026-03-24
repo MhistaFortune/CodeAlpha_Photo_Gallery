@@ -8,4 +8,5 @@ export interface ImageItem {
   size?: number;
   isFavorite?: boolean;
   uploadDate?: number;
+  type?: 'image' | 'video';
 }
