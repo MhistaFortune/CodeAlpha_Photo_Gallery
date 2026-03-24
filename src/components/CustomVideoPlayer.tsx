@@ -58,11 +58,7 @@ export function CustomVideoPlayer({ src }: CustomVideoPlayerProps) {
         interactionSideRef.current = x < rect.width / 2 ? 'left' : 'right';
         lastYRef.current = e.clientY;
         
-        try {
-          e.currentTarget.setPointerCapture(e.pointerId);
-        } catch (err) {
-          console.error("Pointer capture failed:", err);
-        }
+        // Removed setPointerCapture to allow native click events (like showing controls) to work normally
       }
     } else {
       // It is the control area, we still stop propagation so react-zoom-pan-pinch doesn't drag the video while sliding volume
@@ -103,13 +99,6 @@ export function CustomVideoPlayer({ src }: CustomVideoPlayerProps) {
   const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     lastYRef.current = null;
     interactionSideRef.current = null;
-    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-        try {
-          e.currentTarget.releasePointerCapture(e.pointerId);
-        } catch (err) {
-          console.error("Pointer release failed:", err);
-        }
-    }
   };
 
   const togglePlayPause = () => {
@@ -128,7 +117,12 @@ export function CustomVideoPlayer({ src }: CustomVideoPlayerProps) {
     <div 
       ref={containerRef}
       className="relative w-full flex items-center justify-center nodrag"
-      style={{ height: "100%", maxHeight: "100%" }}
+      style={{ height: "100%", maxHeight: "100%", touchAction: 'none' }}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+      onContextMenu={(e) => e.preventDefault()}
     >
         <video
           ref={videoRef}
@@ -139,24 +133,7 @@ export function CustomVideoPlayer({ src }: CustomVideoPlayerProps) {
           className="max-h-full max-w-full object-contain rounded-md shadow-2xl"
           style={{ 
             filter: `brightness(${brightness})`, 
-            touchAction: 'none' 
           }}
-          onPointerDown={() => {
-            // Needed to ensure video native capture doesn't fully block our div,
-            // though bubbling usually suffices.
-          }}
-        />
-
-        {/* Overlay that ensures we capture pointers on top part of video */}
-        {/* We use an overlay because native mobile video players strongly intercept touches inside the <video> bounds */}
-        <div 
-           className="absolute top-0 left-0 right-0 h-[80%] z-10"
-           onPointerDown={handlePointerDown}
-           onPointerMove={handlePointerMove}
-           onPointerUp={handlePointerUp}
-           onPointerCancel={handlePointerUp}
-           onContextMenu={(e) => e.preventDefault()}
-           style={{ touchAction: 'none' }}
         />
 
         {showIndicator && (
