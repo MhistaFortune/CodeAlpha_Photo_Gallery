@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
+import { CustomVideoPlayer } from './CustomVideoPlayer';
 import type { ImageItem } from '../types';
 
 interface LightboxProps {
@@ -127,13 +128,7 @@ export function Lightbox({ images, currentIndex, onClose, onNavigate }: Lightbox
               </div>
               <TransformComponent wrapperStyle={{ width: "100%", height: "85vh" }} contentStyle={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 {currentImage.type === 'video' ? (
-                  <video
-                    src={currentImage.previewUrl}
-                    controls
-                    autoPlay
-                    playsInline
-                    className="max-h-full max-w-full object-contain rounded-md shadow-2xl"
-                  />
+                  <CustomVideoPlayer src={currentImage.previewUrl} />
                 ) : (
                   <img
                     src={currentImage.previewUrl}
