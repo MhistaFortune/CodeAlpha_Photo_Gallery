@@ -100,6 +100,7 @@ export function Lightbox({ images, currentIndex, onClose, onNavigate }: Lightbox
           maxScale={4}
           centerOnInit
           wheel={{ step: 0.1 }}
+          doubleClick={{ disabled: currentImage.type === 'video' }}
         >
           {({ zoomIn, zoomOut, resetTransform }) => (
             <>

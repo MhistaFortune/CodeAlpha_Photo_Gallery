@@ -7,9 +7,8 @@ interface CustomVideoPlayerProps {
 
 export function CustomVideoPlayer({ src }: CustomVideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
   
-  const [brightness, setBrightness] = useState(1); // 1 is default
+  const [brightness, setBrightness] = useState(1); 
   const [showIndicator, setShowIndicator] = useState<{ type: 'volume' | 'brightness' | 'playPause', value?: number | boolean } | null>(null);
 
   const lastYRef = useRef<number | null>(null);
@@ -22,60 +21,45 @@ export function CustomVideoPlayer({ src }: CustomVideoPlayerProps) {
     if (indicatorTimeoutRef.current) clearTimeout(indicatorTimeoutRef.current);
     indicatorTimeoutRef.current = setTimeout(() => {
       setShowIndicator(null);
-    }, 1000); // Hide after 1 second
+    }, 1000); 
   };
 
-  // Volume and Play/Pause are manipulated directly.
-
-
-  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+  const handlePointerDown = (e: React.PointerEvent<HTMLVideoElement>) => {
     if (!e.isPrimary) return;
 
     // We don't want to interfere if they are clicking the bottom 20% (native controls area)
-    const rect = containerRef.current?.getBoundingClientRect();
-    let isControlArea = false;
+    const rect = videoRef.current?.getBoundingClientRect();
     if (rect) {
       const y = e.clientY - rect.top;
       if (y > rect.height * 0.8) {
-        isControlArea = true;
+        return;
       }
     }
 
-    if (!isControlArea) {
-      e.stopPropagation(); // Stop zoom/pan from intercepting
-      
-      const now = Date.now();
-      const DOUBLE_TAP_DELAY = 300;
-      if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
-        togglePlayPause();
-        lastTapRef.current = 0;
-        return;
-      }
-      lastTapRef.current = now;
+    const now = Date.now();
+    const DOUBLE_TAP_DELAY = 300;
+    if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
+      togglePlayPause();
+      lastTapRef.current = 0;
+      return;
+    }
+    lastTapRef.current = now;
 
-      if (rect) {
-        const x = e.clientX - rect.left;
-        interactionSideRef.current = x < rect.width / 2 ? 'left' : 'right';
-        lastYRef.current = e.clientY;
-        
-        // Removed setPointerCapture to allow native click events (like showing controls) to work normally
-      }
-    } else {
-      // It is the control area, we still stop propagation so react-zoom-pan-pinch doesn't drag the video while sliding volume
-      e.stopPropagation();
+    if (rect) {
+      const x = e.clientX - rect.left;
+      interactionSideRef.current = x < rect.width / 2 ? 'left' : 'right';
+      lastYRef.current = e.clientY;
     }
   };
 
-  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+  const handlePointerMove = (e: React.PointerEvent<HTMLVideoElement>) => {
     if (lastYRef.current === null || interactionSideRef.current === null) return;
     if (!e.isPrimary) return;
-    
-    e.stopPropagation();
 
     const deltaY = lastYRef.current - e.clientY;
     lastYRef.current = e.clientY;
 
-    const containerHeight = containerRef.current?.clientHeight || 500;
+    const containerHeight = videoRef.current?.clientHeight || 500;
     const sensitivity = 1.5;
     const change = (deltaY / containerHeight) * sensitivity;
 
@@ -96,7 +80,7 @@ export function CustomVideoPlayer({ src }: CustomVideoPlayerProps) {
     }
   };
 
-  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+  const handlePointerUp = () => {
     lastYRef.current = null;
     interactionSideRef.current = null;
   };
@@ -114,55 +98,50 @@ export function CustomVideoPlayer({ src }: CustomVideoPlayerProps) {
   };
 
   return (
-    <div 
-      ref={containerRef}
-      className="relative w-full flex items-center justify-center nodrag"
-      style={{ height: "100%", maxHeight: "100%", touchAction: 'none' }}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerUp}
-      onContextMenu={(e) => e.preventDefault()}
-    >
-        <video
-          ref={videoRef}
-          src={src}
-          controls
-          autoPlay
-          playsInline
-          className="max-h-full max-w-full object-contain rounded-md shadow-2xl"
-          style={{ 
-            filter: `brightness(${brightness})`, 
-          }}
-        />
+    <>
+      <video
+        ref={videoRef}
+        src={src}
+        controls
+        autoPlay
+        playsInline
+        className="max-h-full max-w-full object-contain rounded-md shadow-2xl nodrag"
+        style={{ 
+          filter: `brightness(${brightness})`, 
+        }}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+      />
 
-        {showIndicator && (
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[60] bg-black/70 backdrop-blur-md rounded-2xl p-6 text-white flex flex-col items-center justify-center pointer-events-none transition-opacity duration-300">
-            {showIndicator.type === 'volume' && (
-              <>
-                {showIndicator.value === 0 ? <VolumeX className="w-12 h-12 mb-3" /> : <Volume2 className="w-12 h-12 mb-3" />}
-                <div className="text-xl font-bold mb-2">{Math.round((showIndicator.value as number) * 100)}%</div>
-                <div className="w-32 h-2 bg-gray-600 rounded-full overflow-hidden">
-                   <div className="h-full bg-white transition-all duration-75" style={{ width: `${(showIndicator.value as number) * 100}%` }} />
-                </div>
-              </>
-            )}
-            {showIndicator.type === 'brightness' && (
-              <>
-                <Sun className="w-12 h-12 mb-3" />
-                <div className="text-xl font-bold mb-2">{Math.round(((showIndicator.value as number) / 2) * 100)}%</div>
-                <div className="w-32 h-2 bg-gray-600 rounded-full overflow-hidden">
-                   <div className="h-full bg-white transition-all duration-75" style={{ width: `${((showIndicator.value as number) / 2) * 100}%` }} />
-                </div>
-              </>
-            )}
-            {showIndicator.type === 'playPause' && (
-              <>
-                {showIndicator.value ? <Play className="w-16 h-16 ml-2" fill="currentColor" /> : <Pause className="w-16 h-16" fill="currentColor" />}
-              </>
-            )}
-          </div>
-        )}
-    </div>
+      {showIndicator && (
+        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[60] bg-black/70 backdrop-blur-md rounded-2xl p-6 text-white flex flex-col items-center justify-center pointer-events-none transition-opacity duration-300">
+          {showIndicator.type === 'volume' && (
+            <>
+              {showIndicator.value === 0 ? <VolumeX className="w-12 h-12 mb-3" /> : <Volume2 className="w-12 h-12 mb-3" />}
+              <div className="text-xl font-bold mb-2">{Math.round((showIndicator.value as number) * 100)}%</div>
+              <div className="w-32 h-2 bg-gray-600 rounded-full overflow-hidden">
+                 <div className="h-full bg-white transition-all duration-75" style={{ width: `${(showIndicator.value as number) * 100}%` }} />
+              </div>
+            </>
+          )}
+          {showIndicator.type === 'brightness' && (
+            <>
+              <Sun className="w-12 h-12 mb-3" />
+              <div className="text-xl font-bold mb-2">{Math.round(((showIndicator.value as number) / 2) * 100)}%</div>
+              <div className="w-32 h-2 bg-gray-600 rounded-full overflow-hidden">
+                 <div className="h-full bg-white transition-all duration-75" style={{ width: `${((showIndicator.value as number) / 2) * 100}%` }} />
+              </div>
+            </>
+          )}
+          {showIndicator.type === 'playPause' && (
+            <>
+              {showIndicator.value ? <Play className="w-16 h-16 ml-2" fill="currentColor" /> : <Pause className="w-16 h-16" fill="currentColor" />}
+            </>
+          )}
+        </div>
+      )}
+    </>
   );
 }
